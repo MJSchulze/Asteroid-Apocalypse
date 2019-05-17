@@ -4,7 +4,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <cpu_speed.h>
-#include <cab202_teensy.h>
 #include <graphics.h>
 #include <macros.h>
 #include "lcd_model.h"
@@ -12,55 +11,60 @@
 //Global Variables
 
 //Starfighter
+
+#define HEIGHT 5
+#define WIDTH 11
+#define y 41
+
 char * starfighter = 
 "     *     "
 " ** *** ** "
 "***********"
 " **  *  ** "
 "**  ***  **";
-#define HEIGHT = 5;
-#define WIDTH = 11;
-#define y = 41;
 int x = 36;
 
 void draw_fighter() {
   for (int j = 0; j < HEIGHT; j++) {
     for (int i = 0; i < WIDTH; i++) {
-      if (starfighter[i+j*width] != ' ') {
-        draw_char(x+i, y+j, starfighter[i+j*width]);
+      if (starfighter[i+j*WIDTH] != ' ') {
+        draw_char(x+i, y+j, starfighter[i+j*WIDTH], FG_COLOUR);
       }
     }
   }
+  draw_line(0, 39, 83, 39, FG_COLOUR);
 }
 
-void move(bool direction) {
-    if(direction) {
+void move(int direction) {
+    if(direction == 1) {
         x++;
     } else {
         x--;
     }
 }
 
-void take_input(int ch) {
-    if (ch == 'w') { 
+void take_input() {
+    if (BIT_IS_SET(PIND, 1)) { 
         //fire();
-    } else if (ch == 'a') { 
-        move(false);
-    } else if (ch == 's') { 
+    } else if (BIT_IS_SET(PINB, 1)) { 
+        move(0);
+    } else if (BIT_IS_SET(PINF, 7)) { 
         //sendStatus();
-    } else if (ch == 'd') { 
-        move(true);
+    } else if (BIT_IS_SET(PIND, 0)) {    
+        move(1);
     }
 }
 
 void setup() {
     draw_fighter();
+    lcd_init(LCD_DEFAULT_CONTRAST);
 }
 
 void loop() {
-    int key = wait_char();
-    take_input(key);
+    clear_screen();
     draw_fighter();
+    show_screen();
+    take_input();
 }
 
 int main(void) {
